@@ -1,6 +1,6 @@
 using System;
 
-namespace Ass_1 {
+namespace Assignment1 {
     public class NotFoundException : Exception {
         public NotFoundException() : base("Station not found"){
             

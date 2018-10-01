@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Ass_1
+namespace Assignment1
 {
     public interface ICityBikeDataFetcher
     {

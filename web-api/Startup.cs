@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -27,8 +29,32 @@ namespace web_api
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
-            services.AddSingleton<IRepository, InMemoryRepository>();
+            services.AddSingleton<IRepository, MongoDbRepository>();
             services.AddSingleton<PlayersProcessor>();
+            services.AddSingleton<ItemsProcessor>();
+            services.AddSingleton<LogProcessor>();
+            services.AddSingleton<ApiKey>(new ApiKey(Configuration.GetValue<string>("api-key"), Configuration.GetValue<string>("api-key-admin")));
+
+
+            services.AddMvc(options =>
+            {
+                options.Filters.Add(new LowLevelPlayerExceptionFilterAttribute()); // custom filter - applies to all controllers and their actions
+                // options.Filters.Add(new UserActionAuditActionFilterAttribute());
+            });
+
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+            
+            // services.AddAuthorization(options =>
+            // {
+            //     // options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+            //     // options.AddPolicy("User", policy => policy.RequireRole("User"));
+            //     // options.DefaultPolicy = options.GetPolicy("User");
+            //     // options.AddPolicy("Admin", policy =>
+            //     //     policy.RequireClaim("Role", "Admin"));
+            //     // options.AddPolicy("User", policy => 
+            //     //     policy.RequireClaim("Role", "User"));
+            // });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -42,6 +68,8 @@ namespace web_api
             {
                 app.UseHsts();
             }
+
+            app.UseAuthMiddleware();
 
             app.UseHttpsRedirection();
             app.UseMvc();
